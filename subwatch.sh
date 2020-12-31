@@ -30,6 +30,7 @@ for DOMAIN in $(cat $INPUT_FILE); do
     if test -f $OUTPUT_DIR/$DOMAIN/old.txt; then
         echo -e "[+] CHECKING: $DOMAIN"
         curl -s "https://crt.sh/?q=$DOMAIN&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > $OUTPUT_DIR/$DOMAIN/new.txt
+        sleep 3
 
         # Check if files are the same
         # and contain no diffs
@@ -55,6 +56,7 @@ for DOMAIN in $(cat $INPUT_FILE); do
             # thus on the next run a new.txt will
             # be created
             mv $OUTPUT_DIR/$DOMAIN/new.txt $OUTPUT_DIR/$DOMAIN/old.txt
+            rm $OUTPUT_DIR/$DOMAIN/diff.txt
 
             # TODO:
             # Add screenshot functionality via aquatone
@@ -66,6 +68,7 @@ for DOMAIN in $(cat $INPUT_FILE); do
     else
         echo -e "[INITIAL RUN] CHECKING: $DOMAIN"
         curl -s "https://crt.sh/?q=$DOMAIN&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > $OUTPUT_DIR/$DOMAIN/old.txt
+        sleep 3
     fi
 done
 
