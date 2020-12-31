@@ -35,26 +35,31 @@ for DOMAIN in $(cat $INPUT_FILE); do
         # Check if files are the same
         # and contain no diffs
         if cmp -s $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt; then
-            # Do nothing
             echo -e "[+] Files are the same..."
             echo -e "[+] Nothing to do..."
+            # Cleanup:
+            # mv new.txt -> old.txt thus on the next
+            # run a fresh "new.txt" file will be created
+            # and checked against old.txt (formerly "new.txt")
+            mv $OUTPUT_DIR/$DOMAIN/new.txt $OUTPUT_DIR/$DOMAIN/old.txt
 
         # If they do contain diffs then
         # check what they are, write it
-        # to a file, and send it via
-        # email
+        # to a file, and send it via email
         else
+            # Create email to send
             echo -e "[+] New subdomain found..."
             echo -e "Subject: New subdomain(s) found on: $DOMAIN" > $OUTPUT_DIR/$DOMAIN/diff.txt
             echo -e "Subdomain(s): " >> $OUTPUT_DIR/$DOMAIN/diff.txt
             diff $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt | awk -F'>' ' { print $2 } ' | sed 's/\s//g' | sed '/^$/d' >> $OUTPUT_DIR/$DOMAIN/diff.txt
 
+            # TODO:
+            # Do default nmap scan
+
             # Send the email
             ssmtp $RECIPIENT < $OUTPUT_DIR/$DOMAIN/diff.txt
 
-            # Cleanup and mv new.txt into old.txt
-            # thus on the next run a new.txt will
-            # be created
+            # Cleanup
             mv $OUTPUT_DIR/$DOMAIN/new.txt $OUTPUT_DIR/$DOMAIN/old.txt
             rm $OUTPUT_DIR/$DOMAIN/diff.txt
 
