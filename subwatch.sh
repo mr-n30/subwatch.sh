@@ -25,40 +25,42 @@ for DOMAIN in $(cat $INPUT_FILE); do
     # If old.txt does exist then
     # create new.txt
     if test -f $OUTPUT_DIR/$DOMAIN/old.txt; then
-            curl -s "https://crt.sh/?q=$DOMAIN&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > $OUTPUT_DIR/$DOMAIN/new.txt
+        echo -e "[+] CHECKING: $DOMAIN"
+        curl -s "https://crt.sh/?q=$DOMAIN&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > $OUTPUT_DIR/$DOMAIN/new.txt
 
-            # Check if files are the same
-            # and contain no diffs
-            if cmp -s $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt; then
-                # Do nothing
-                echo "[+] Files are the same..."
-                echo "[+] Nothing to do..."
+        # Check if files are the same
+        # and contain no diffs
+        if cmp -s $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt; then
+            # Do nothing
+            echo "[+] Files are the same..."
+            echo "[+] Nothing to do..."
 
-            # If they do contain diffs then
-            # check what they are, write it
-            # to a file, and send it via
-            # email
-            else
-                #echo "[DEBUG] Files contain differences. SENDING EMAIL NOW."
-                echo "Subject: New subdomain(s) found on: $DOMAIN" > $OUTPUT_DIR/$DOMAIN/diff.txt
-                echo "Subdomain(s): " >> $OUTPUT_DIR/$DOMAIN/diff.txt
-                diff $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt | awk -F'>' ' { print $2 } ' | sed 's/\s//g' | sed '/^$/d' >> $OUTPUT_DIR/$DOMAIN/diff.txt
-                ssmtp $RECIPIENT < $OUTPUT_DIR/$DOMAIN/diff.txt
+        # If they do contain diffs then
+        # check what they are, write it
+        # to a file, and send it via
+        # email
+        else
+            #echo "[DEBUG] Files contain differences. SENDING EMAIL NOW."
+            echo "Subject: New subdomain(s) found on: $DOMAIN" > $OUTPUT_DIR/$DOMAIN/diff.txt
+            echo "Subdomain(s): " >> $OUTPUT_DIR/$DOMAIN/diff.txt
+            diff $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt | awk -F'>' ' { print $2 } ' | sed 's/\s//g' | sed '/^$/d' >> $OUTPUT_DIR/$DOMAIN/diff.txt
+            ssmtp $RECIPIENT < $OUTPUT_DIR/$DOMAIN/diff.txt
 
-                # Cleanup and mv new.txt into old.txt
-                # thus on the next run a new.txt will
-                # be created
-                mv $OUTPUT_DIR/$DOMAIN/new.txt $OUTPUT_DIR/$DOMAIN/old.txt
+            # Cleanup and mv new.txt into old.txt
+            # thus on the next run a new.txt will
+            # be created
+            mv $OUTPUT_DIR/$DOMAIN/new.txt $OUTPUT_DIR/$DOMAIN/old.txt
 
-                # TODO:
-                # Add screenshot functionality via aquatone
-                # and send it as an email attachment or HTML <img>
-            fi
+            # TODO:
+            # Add screenshot functionality via aquatone
+            # and send it as an email attachment or HTML <img>
+        fi
 
     # Else if old.txt doesn't exist then
     # create it
     else
-            curl -s "https://crt.sh/?q=$DOMAIN&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > $OUTPUT_DIR/$DOMAIN/old.txt
+        echo -e "[INITIAL RUN] CHECKING: $DOMAIN"
+        curl -s "https://crt.sh/?q=$DOMAIN&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > $OUTPUT_DIR/$DOMAIN/old.txt
     fi
 done
 
