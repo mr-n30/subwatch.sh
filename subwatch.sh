@@ -10,6 +10,13 @@ INPUT_FILE=$2
 # Where to send mail to
 RECIPIENT=
 
+if [[ "$#" -ne 2  ]]
+then
+    echo -e "Usage:\n  $0 <directory> <file>"
+    echo -e "Example:\n  $0 /home/work/ /home/wordlists/domains.txt"
+    exit 1
+fi
+
 for DOMAIN in $(cat $INPUT_FILE); do
     # Create directories to save output to
     # if it doesn't already exist
@@ -24,7 +31,8 @@ for DOMAIN in $(cat $INPUT_FILE); do
             # and contain no diffs
             if cmp -s $OUTPUT_DIR/$DOMAIN/old.txt $OUTPUT_DIR/$DOMAIN/new.txt; then
                 # Do nothing
-                #echo "[DEBUG] Files are the same. Not sending any emails."
+                echo "[+] Files are the same..."
+                echo "[+] Nothing to do..."
 
             # If they do contain diffs then
             # check what they are, write it
